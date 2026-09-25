@@ -1,0 +1,24 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Model/checkpoints
+models/*/
+!models/README.md
+checkpoint-*/
+runs/
+
+# Generated data/reports
+data/processed/*
+reports/figures/*
+reports/*.json
+reports/*.csv
+
+# OS
+.DS_Store
+Thumbs.db
