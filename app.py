@@ -19,12 +19,47 @@ def load_predictor():
         raise FileNotFoundError(
             "Trained model not found. Run the Jupyter notebook first."
         )
-    return SentimentPredictor(MODEL_DIR)
+        
+    try:
+        # 1. Attempt standard loading
+        return SentimentPredictor(MODEL_DIR)
+    except Exception as e:
+        # 2. Check if the error is related to sentencepiece / tokenizer backend
+        if "tokenizer" in str(e).lower() or "sentencepiece" in str(e).lower():
+            import transformers
+            from transformers import AutoTokenizer, pipeline
+            
+            # Monkey-patch or override pipeline creation to bypass the missing binary package
+            st.info("Configuring native backend tokenizer fallback...")
+            
+            # Explicitly instantiate the slow tokenizer variant
+            tokenizer = AutoTokenizer.from_pretrained(MODEL_DIR, use_fast=False)
+            
+            # Reconstruct the pipeline manually without relying on fast rust tokenizers
+            fallback_pipeline = pipeline(
+                "sentiment-analysis", 
+                model=str(MODEL_DIR), 
+                tokenizer=tokenizer
+            )
+            
+            # Initialize predictor wrapper
+            predictor_instance = SentimentPredictor(MODEL_DIR)
+            
+            # If your custom SentimentPredictor exposes the pipeline object, override it:
+            if hasattr(predictor_instance, 'pipeline'):
+                predictor_instance.pipeline = fallback_pipeline
+            elif hasattr(predictor_instance, 'clf'):
+                predictor_instance.clf = fallback_pipeline
+                
+            return predictor_instance
+        else:
+            # Re-raise if it's an unrelated exception
+            raise e
 
 try:
     predictor = load_predictor()
 except Exception as exc:
-    st.warning(str(exc))
+    st.error(f"Failed to initialize model: {str(exc)}")
     st.stop()
 
 review = st.text_area(
