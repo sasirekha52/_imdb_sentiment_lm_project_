@@ -1,12 +1,15 @@
 from pathlib import Path
 import torch
-from transformers import AutoTokenizer, AutoModelForSequenceClassification
+# Explicitly import DistilBertTokenizer instead of AutoTokenizer
+from transformers import DistilBertTokenizer, AutoModelForSequenceClassification
 
 class SentimentPredictor:
     def __init__(self, model_dir: str | Path, max_length: int = 256):
         model_dir = str(model_dir)
-        # Added use_fast=False to bypass the sentencepiece/tiktoken requirement in deployment
-        self.tokenizer = AutoTokenizer.from_pretrained(model_dir, use_fast=False)
+        
+        # Force the native Python DistilBertTokenizer directly to ignore fast/Rust setup configs
+        self.tokenizer = DistilBertTokenizer.from_pretrained(model_dir)
+        
         self.model = AutoModelForSequenceClassification.from_pretrained(model_dir)
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.model.to(self.device)
