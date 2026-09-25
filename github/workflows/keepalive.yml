@@ -41,7 +41,7 @@ jobs:
             const page = await browser.newPage();
 
             await page.goto(
-              "https://sentiment-analyzer-real-world-fnw4p5thuvdvkdnudg9ghk.streamlit.app/",
+              "https://imdbsentimentlmproject-jmvtib7a5usx88mztafd3a.streamlit.app,
               {
                 waitUntil: "networkidle",
                 timeout: 60000
