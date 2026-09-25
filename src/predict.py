@@ -5,7 +5,8 @@ from transformers import AutoTokenizer, AutoModelForSequenceClassification
 class SentimentPredictor:
     def __init__(self, model_dir: str | Path, max_length: int = 256):
         model_dir = str(model_dir)
-        self.tokenizer = AutoTokenizer.from_pretrained(model_dir)
+        # Added use_fast=False to bypass the sentencepiece/tiktoken requirement in deployment
+        self.tokenizer = AutoTokenizer.from_pretrained(model_dir, use_fast=False)
         self.model = AutoModelForSequenceClassification.from_pretrained(model_dir)
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.model.to(self.device)
