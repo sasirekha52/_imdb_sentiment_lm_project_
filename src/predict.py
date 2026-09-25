@@ -1,16 +1,17 @@
 from pathlib import Path
 import torch
-# Explicitly import DistilBertTokenizer instead of AutoTokenizer
 from transformers import DistilBertTokenizer, AutoModelForSequenceClassification
 
 class SentimentPredictor:
     def __init__(self, model_dir: str | Path, max_length: int = 256):
-        model_dir = str(model_dir)
+        # Directly download and load from the official Hugging Face hub
+        self.tokenizer = DistilBertTokenizer.from_pretrained("distilbert-base-uncased")
+        self.model = AutoModelForSequenceClassification.from_pretrained("distilbert-base-uncased", num_labels=2)
         
-        # Force the native Python DistilBertTokenizer directly to ignore fast/Rust setup configs
-        self.tokenizer = DistilBertTokenizer.from_pretrained(model_dir)
-        
-        self.model = AutoModelForSequenceClassification.from_pretrained(model_dir)
+        # Manually map the internal configuration labels for your application metrics
+        self.model.config.id2label = {0: "NEGATIVE", 1: "POSITIVE"}
+        self.model.config.label2id = {"NEGATIVE": 0, "POSITIVE": 1}
+
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.model.to(self.device)
         self.model.eval()
